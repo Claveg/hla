@@ -1,6 +1,8 @@
 using Random
 using LinearAlgebra
 using Flux
+using Flux.Optimise
+using Plots
 
 bases = "ATGC"
 l = Set([])
@@ -16,11 +18,9 @@ vocabulaire = collect(l)
 sort!(vocabulaire)
 
 function create_dic()
-    Dict([codon => Dict([codon => 0 for codon in vocabulaire])
+    Dict([codon => Dict([cod => 0 for cod in vocabulaire])
     for codon in vocabulaire])
 end
-
-dico["AAA"]["ATG"]
 
 function co_oc!(dic,texte,window)
     n = length(texte)
@@ -59,33 +59,59 @@ end
 @time M2 = matrice2(dico_test);
 
 function wordvec(n)
-    [
-    ([ones(n)*10 .- (20).*(rand(n))],10 - 20*rand())
+    vecteurs = [
+    [ones(n)*10 .- (20).*(rand(n))]
     for i in 1:64]
+    biais = [10 - 20*rand() for i in 1:64]
+    return(vecteurs, biais)
 end
 
-word_test = wordvec(10)
+vec_test, biais_test = wordvec(10)
 
 f(x) = min( (x/20)^0.75 , 1)
 
-function cost(wordvec,mat)
+function cost(vecteurs,biais,mat)
     S = Float32(0)
-    for i in 1:2
+    for i in 1:64
         for j in 1:64
             m = mat[i][j]
             if m == 0
                 break
             end
-            wi = wordvec[i]
-            wj = wordvec[j]
-            S += f(m)*( dot(wi[1],wj[1]) + wi[2] + wj[2] - log(m) )^2
+            wi = vecteurs[i]
+            wj = vecteurs[j]
+            bi = biais[i]
+            bj = biais[j]
+            S += f(m)*( dot(wi,wj) + bi + bj - log(m) )^2
         end
     end
     S
 end
 
-cost(word_test,M2)
+cost(vec_test,biais_test,M2)
 
-p = params(word_test)
+cost_test(x) = cost(vec_test, biais_test, x)
 
-#= grad = gradient(x -> cost(word_test,x) , p) =#
+cost_test(M2)
+
+ps = params(vec_test, biais_test)
+
+grad = gradient( () -> cost_test(M2) , ps )
+
+grad[biais_test]
+grad[vec_test[1]]
+
+opt = Descent()
+
+function maj()
+    list = []
+    for i in 1:100
+        update!(opt, ps, grad)
+        append!(list,[cost_test(M2)])
+    end
+    list
+end
+
+#= list = maj()
+
+plot(list) =#
