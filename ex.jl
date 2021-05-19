@@ -77,17 +77,21 @@ vecm_test, vecc_test, biaism_test, biaisc_test = wordvec(10)
 f(x) = min( (x/10)^0.75 , 1)
 
 function cost(vecteurs_mots,vecteurs_contexte,biais_mot, biais_contexte,mat)
-    S = Float32(0)
+    S = 0
     for i in 1:64
+
+        wi = vecteurs_mots[i]
+        bi = biais_mot[i]
+
         for j in 1:64
             m = mat[i][j]
             if m == 0
                 break
             end
-            wi = vecteurs_mots[i]
+            
             wj = vecteurs_contexte[j]
-            bi = biais_mot[i]
             bj = biais_contexte[j]
+
             S += f(m)*( dot(wi,wj) + bi + bj - log(m) )^2
         end
     end
@@ -121,22 +125,13 @@ grad = gradient(ps) do
     cost(vecm_test, vecc_test, biaism_test, biaisc_test, M2)
 end
 
-#= grad[vecm_test] =#
+#= grad[vecm_test]
+grad[vecc_test[1]]
+v1 = vecc_test[1]
+grad[v1]
+grad[biaism_test] =#
 
 opt = Descent()
-
-function maj()
-    list = []
-    for i in 1:100
-        Flux.Optimise.update!(opt, ps3, grad3)
-        append!(list,[cost_test(M2)])
-    end
-    list
-end
-
-#= list = maj()
-
-plot(list) =#
 
 #= a = [2.0]
 b = [7.0]
@@ -209,67 +204,84 @@ function opti(vecteurs_mots,vecteurs_contexte,biais_mot, biais_contexte,mat)
 
     
     for i in 1:64
-        for k in 1:10
-            for j in 1:64
-                m = mat[i][j]
-                if m == 0
-                    break
-                end
-                wi = vecteurs_mots[i]
-                wj = vecteurs_contexte[j]
-                bi = biais_mot[i]
-                bj = biais_contexte[j]
-                gvm[i][k] += 2*f(m)*wj[k]*( dot(wi,wj) + bi + bj - log(m) )
-            end
-        end
-    end
 
-    for j in 1:64
-        for k in 1:10
-            for i in 1:64
-                m = mat[i][j]
-                if m == 0
-                    break
-                end
-                wi = vecteurs_mots[i]
-                wj = vecteurs_contexte[j]
-                bi = biais_mot[i]
-                bj = biais_contexte[j]
-                gvc[j][k] += 2*f(m)*wi[k]*( dot(wi,wj) + bi + bj - log(m) )
-            end
-        end
-    end
+        wi = vecteurs_mots[i]
+        bi = biais_mot[i]
 
-    for i in 1:64
         for j in 1:64
             m = mat[i][j]
             if m == 0
                 break
             end
-            wi = vecteurs_mots[i]
-            wj = vecteurs_contexte[j]
-            bi = biais_mot[i]
+            
+            wj = vecteurs_contexte[j]                
+                wj = vecteurs_contexte[j]
+            wj = vecteurs_contexte[j]                
             bj = biais_contexte[j]
+
+            gvm[i] += 2*f(m)*wj*( dot(wi,wj) + bi + bj - log(m) )
+        end
+
+    end
+
+    for j in 1:64
+
+        wj = vecteurs_contexte[j]
+        bj = biais_contexte[j]
+
+        for i in 1:64
+            m = mat[j][i]
+            if m == 0
+                break
+            end
+
+            wi = vecteurs_mots[i]                
+                wi = vecteurs_mots[i]
+            wi = vecteurs_mots[i]                
+            bi = biais_mot[i]
+            
+            gvc[j] += 2*f(m)*wi*( dot(wi,wj) + bi + bj - log(m) )
+        end
+    end
+
+    for i in 1:64
+
+        wi = vecteurs_mots[i]
+        bi = biais_mot[i]
+
+        for j in 1:64
+            m = mat[i][j]
+            if m == 0
+                break
+            end
+            
+            wj = vecteurs_contexte[j]            
+            bj = biais_contexte[j]
+
             gbm[i] += 2*f(m)*( dot(wi,wj) + bi + bj - log(m) )
         end
     end
 
     for j in 1:64
+
+        wj = vecteurs_contexte[j]
+        bj = biais_contexte[j]
+
         for i in 1:64
             m = mat[i][j]
             if m == 0
                 break
             end
-            wi = vecteurs_mots[i]
-            wj = vecteurs_contexte[j]
+
+            wi = vecteurs_mots[i]            
             bi = biais_mot[i]
-            bj = biais_contexte[j]
-            gbc[i] += 2*f(m)*( dot(wi,wj) + bi + bj - log(m) )
+            
+            gbc[j] += 2*f(m)*( dot(wi,wj) + bi + bj - log(m) )
         end
     end
 
 
-  return(vecteurs_mots - 0.1 * gvm , vecteurs_contexte - 0.1 * gvc , biaism_test - 0.1 * gbm , biaisc_test - 0.1 * gbc )
+  return(gvm,gvc,gbm,gbc)
 end
 
 #= opti(vecm_test, vecc_test, biaism_test, biaisc_test, M2); =#
@@ -283,4 +295,5 @@ function maj2(vecteurs_mots,vecteurs_contexte,biais_mot, biais_contexte,mat)
     list
 end
 
-#= maj2(vecm_test, vecc_test, biaism_test, biaisc_test, M2) =#
+#= maj2(vecm_test, vecc_test, biaism_test, biaisc_test, M2,4)
+gvm,gvc,gbm,gbc = opti(vecm_test, vecc_test, biaism_test, biaisc_test, M2) =#
