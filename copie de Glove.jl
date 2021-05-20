@@ -36,7 +36,7 @@ size(W_main, 2) =#
 function adagrad!(
   m::Model;
   #= mat::Vector{Vector{Int64}}; =#
-  epochs::Int=10,
+  epochs::Int=100,
   lrate=Float64(1e-2),
   xmax::Int=20,
   alpha=Float64(0.75))
@@ -91,14 +91,17 @@ function adagrad!(
 end
 
 m = Model(64,10)
-m.W_main
+m.W_main;
 plot(adagrad!(m))
-m.W_main
+m.W_main;
 
-using MultivariateStats
+m.W_main_grad;
+
+#= using MultivariateStats
 
 pc = MultivariateStats.fit(PCA, m.W_main; maxoutdim=2)
 Y = transform(pc, m.W_main)
 
 gr() 
-plot(Y[1,:],Y[2,:], seriestype = :scatter)
+plot(Y[1,:],Y[2,:], seriestype = :scatter) =#
+
