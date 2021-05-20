@@ -94,7 +94,7 @@ m = Model(64,10)
 m.W_main;
 plot(adagrad!(m))
 m.W_main;
-
+@time adagrad!(m)
 m.W_main_grad;
 
 #= using MultivariateStats
