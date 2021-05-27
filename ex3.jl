@@ -5,7 +5,7 @@ using Flux.Optimise
 using Plots
 using Statistics
 
-xmax = 20
+xmax = 500
 V = 64
 
 bases = "ATGC"
@@ -67,12 +67,11 @@ struct Glove
 end
 
 function Glove(vocabsize::Int, vecsize::Int)
-    shift = Float64(0.5)
     Glove(
-        (rand(Float64, vecsize, vocabsize) .- shift) ./ Float64(vecsize + 1),
-        (rand(Float64, vecsize, vocabsize) .- shift) ./ Float64(vecsize + 1),
-        (rand(Float64, vocabsize) .- shift) ./ Float64(vecsize + 1),
-        (rand(Float64, vocabsize) .- shift) ./ Float64(vecsize + 1) )
+        ones(Float64, vecsize, vocabsize),
+        ones(Float64, vecsize, vocabsize),
+        ones(Float64, vocabsize),
+        ones(Float64, vocabsize))
 end
 
 Flux.@functor Glove
@@ -91,14 +90,40 @@ function cost2(mat::Vector{Vector{Float64}})
 
         for j in 1:V
             m = mat[i][j]
-            if m == 0
-                continue
-            end
-            
-            wj = g.W_ctx[:,j]
-            bj = g.b_ctx[j]
+            if m != 0
+                wj = g.W_ctx[:,j]
+                bj = g.b_ctx[j]
 
-            S += f(m)*( dot(wi,wj) + bi + bj - log(m) )^2
+                S += f(m)*( dot(wi,wj) + bi + bj - log(m) )^2
+            end
+        end
+    end
+    S
+end
+
+function cost(mat::Vector{Vector{Float64}})
+
+    S = 0
+    vs = length(g.W_main[:,1])
+    for i in 1:V
+
+        wi = g.W_main[:,i]
+        bi = g.b_main[i]
+
+        for j in 1:V
+            m = mat[i][j]
+            if m != 0
+            
+                wj = g.W_ctx[:,j]
+                bj = g.b_ctx[j]
+                ps = 0
+
+                for k in 1:vs
+                    ps += wi[k]*wj[k]
+                end
+
+                S += f(m)*( ps + bi + bj - log(m) )^2
+            end
         end
     end
     S
@@ -110,35 +135,6 @@ function update_loss!(mat)
     push!(train_loss, cost2(mat))
     println("train loss = $(train_loss[end])")
 end
-
-# comparer differents opts
-
-#= g = Glove(64,10)
-p = params(g)
-opt = Flux.Optimise.ADAGrad()
-Flux.train!(cost2, p, Iterators.repeated(M2, 200), opt; cb = update_loss!)
-
-img = plot(1:length(train_loss), train_loss, xlabel="epochs", ylabel="loss", label="ADAGrad")
-
-g = Glove(64,10)
-train_loss = [cost2(M2)]
-p = params(g)
-opt = Flux.Optimise.Descent(0.01)
-Flux.train!(cost2, p, Iterators.repeated(M2, 200), opt; cb = update_loss!)
-
-plot!(1:length(train_loss), train_loss, xlabel="epochs", ylabel="loss", label="Descent")
-
-g = Glove(64,10)
-train_loss = [cost2(M2)]
-p = params(g)
-opt = Flux.Optimise.ADAM()
-Flux.train!(cost2, p, Iterators.repeated(M2, 200), opt; cb = update_loss!)
-
-plot!(1:length(train_loss), train_loss, xlabel="epochs", ylabel="loss", label="ADAM")
-
-@time Flux.train!(cost2, p, Iterators.repeated(M2, 100), opt)
-
-savefig(img,"opt.png") =#
 
 # lire les sequences
 
@@ -194,15 +190,24 @@ norm(MA1-MA1bis)
 norm(MA1-MA2)
 norm(MA1-MB)
 
-
+#= MA1 = [zeros(Float64,64) for i in 1:64] =#
+MA1 = [rand(Float64,64).*1000 for i in 1:64]
 g = Glove(64,10)
 p = params(g)
+cost(MA1)
+WA1_maino = copy(g.W_main)
+WA1_ctxo = copy(g.W_ctx)
+
+(1/20)^0.75*(10+2-log(1))^2
+
 opt = Flux.Optimise.ADAGrad()
-Flux.train!(cost2, p, Iterators.repeated(MA1, 50), opt)
+Flux.train!(cost, p, Iterators.repeated(MA1, 50), opt)
+cost(MA1)
 
 WA1_main = g.W_main
 WA1_ctx = g.W_ctx
 
+WA1_main-WA1_maino
 
 g = Glove(64,10)
 p = params(g)
@@ -239,14 +244,6 @@ Y2 = transform(pcA2, WA2_main+WA2_ctx)
 pcB = MultivariateStats.fit(PCA, WB_main+WB_ctx; maxoutdim=2)
 Y3 = transform(pcB, WB_main+WB_ctx)
 
-#= gr()
-plot(Y[1,:],Y[2,:], seriestype = :scatter)
-plot(Y[1,:],Y[2,:], seriestype = :scatter, series_annotations = Plots.series_annotations(vocabulaire, Plots.font("Sans", 7)))
-
-img = plot(Y[1,:],Y[2,:], marker=(2,0.2,:black), seriestype = :scatter, series_annotations = [text("   "*voc, Plots.font("Sans", 2), :left) for voc in vocabulaire])
-Plots.savefig(img,"A1.pdf")
-
-scatter!(linspace(2,8,6),rand(6),marker=(50,0.2,:orange),series_annotations=["series","annotations","map","to","series",text("data",:green)]) =#
 
 plotly()
 
