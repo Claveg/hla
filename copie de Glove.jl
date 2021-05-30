@@ -54,7 +54,7 @@ function adagrad!(
                 val = mat[i][j] # value
 
                 if val == 0
-                    break
+                    continue
                 end
 
                 dif = m.b_main[i] + m.b_ctx[j] - log(val)
