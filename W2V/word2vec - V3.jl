@@ -262,7 +262,7 @@ function trad(vecs::Array{String})
     return([trad(s) for s in vecs])
 end
 
-data = create_batch("A01010101.txt",5)
+#= data = create_batch("A01010101.txt",5)
 
 model = Wv(V,10)
 ps = params(model)
@@ -357,7 +357,7 @@ simiA1bis = similaire(W_A1bis+W1_A1bis',"AGC",10);
 simiA2 = similaire(W_A2+W1_A2',"AGC",10);
 simiB = similaire(W_B+W1_B',"AGC",10);
 
-[simiA1 simiA1bis simiA2 simiB]
+[simiA1 simiA1bis simiA2 simiB] =#
 
 function eval(data)
     n,p = size(data[1])
@@ -412,7 +412,7 @@ function eval3(data,s1,s2)
 end
 
 
-data = create_batch2("A01010101.txt",30)
+#= data = create_batch2("A01010101.txt",30)
 
 model = Wv(V,20)
 ps = params(model)
@@ -452,7 +452,7 @@ simiA1bis = similaire(W_A1bis+W1_A1bis',"AGA",5);
 [simiA1 simiA1bis]
 
 W1 = W_A1+W1_A1'
-W2 = W_A1bis+W1_A1bis'
+W2 = W_A1bis+W1_A1bis' =#
 
 
 function evalsimi(W1,W2,n)
@@ -602,7 +602,7 @@ function tcontext(range; hidsize = 20, train = 250, s1 = 0.25, s2 = 0.1, sim = 1
 
 end
 
-@time (eva_1 , eva_2 , eva_3, mean_simi) = tcontext(1:30; train = 200, type = 3 , sim = 6)
+#= @time (eva_1 , eva_2 , eva_3, mean_simi) = tcontext(1:30; train = 200, type = 3 , sim = 6)
 
 plot(eva_1, label = "eva_1")
 plot(eva_2, label = "eva_2")
@@ -610,7 +610,7 @@ plot(eva_3, label = "eva_3")
 
 m_simi = [ mean(mean_simi[i,:]) for i in 1:length(mean_simi[:,1])]
 
-plot(m_simi, label = "m_simi")
+plot(m_simi, label = "m_simi") =#
 
 function sauvegarde(name,texte,e1,e2,e3,ms)
     open("$(name).txt", "w") do io
@@ -631,4 +631,4 @@ function sauvegarde(name,texte,e1,e2,e3,ms)
     end
 end
 
-sauvegarde("type3_30","tcontext(1:30; train = 200, type = 3 , sim = 6)",eva_1,eva_2,eva_3,mean_simi)
+#= sauvegarde("type3_30","tcontext(1:30; train = 200, type = 3 , sim = 6)",eva_1,eva_2,eva_3,mean_simi) =#
