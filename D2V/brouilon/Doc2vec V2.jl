@@ -11,7 +11,9 @@ using Flux: onehot, batch, onecold
 using Plots
 
 V = 64
-Vdoc = 200
+Vdoc = 3
+hidword = 10
+hiddoc = 2
 
 struct Dv
     W::Matrix{Float64}
@@ -77,13 +79,13 @@ size(data[2])
 typeof(data[3])
 size(data[3])
 
-model2 = Dv(V,3,30,3)
+model2 = Dv(V,Vdoc,hidword,hiddoc)
 
 W = model2.W[:,:]
 D = model2.D[:,:]
 W1 = model2.W1[:,:]
 
-ps = params(model2)
+ps = Flux.params(model2)
 
 opt = ADAGrad()
 
@@ -96,6 +98,7 @@ loss = []
 @time train!(cst2, ps, Iterators.repeated(data,500), opt; cb = () -> update_loss2!(loss))
 
 plot(loss)
+
 
 dW = model2.W-W
 dD = model2.D-D
@@ -117,9 +120,9 @@ onecold(y)
 ypred[43]
 
 
-dat1 =  create_batch3("A01010101.txt",5)
-dat2 = create_batch3("B07020101.txt",5)
-dat3 =  create_batch3("A01010102.txt",5)
+dat1 =  create_batch3(raw"Sequences\A01010101.txt",5)
+dat2 = create_batch3(raw"Sequences\B07020101.txt",5)
+dat3 =  create_batch3(raw"Sequences\A01010102.txt",5)
 
 X = [dat1[1] dat2[1] dat3[1]]
 d1 = [onehot(:1, [:1,:2,:3]) for i in 1:length(dat1[1][1,:]) ]
@@ -207,7 +210,7 @@ y2 = Dense(hidword + hiddoc, V; bias = false)
 
 D2W2 = Chain( h2 , y2 , softmax)
 
-ps2 = params(D2W2)
+ps2 = Flux.params(D2W2)
 
 
 word2( rand(V) )
@@ -223,7 +226,7 @@ function cst4(x_w,x_d,y)
     crossentropy( D2W2([x_w,x_d]),y ; agg = sum)
 end
 
-ps = params(D2W2)
+ps = Flux.params(D2W2)
 cst4(data...)
 
 Wtest = word2.W[:,:]
@@ -241,6 +244,8 @@ opt = ADAGrad()
 @time train!(cst4, ps, Iterators.repeated(data,250), opt; cb = () -> update_loss4!(loss))
 
 plot(loss)
+
+(loss[1]-loss[end])/loss[1]
 
 Wtest - word.W[:,:]
 Dtest - doc.W[:,:]

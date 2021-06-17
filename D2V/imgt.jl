@@ -48,5 +48,3 @@ for i in 1:n
     a = db1[i]
     nom_allele[i] = a.nom
 end
-
-20^3

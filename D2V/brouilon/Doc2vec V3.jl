@@ -83,9 +83,9 @@ onecold(y)
 ypred[argmax(ypred)]
 
 
-dat1 =  create_batch3("A01010101.txt",5)
-dat2 = create_batch3("B07020101.txt",5)
-dat3 =  create_batch3("A01010102.txt",5)
+dat1 =  create_batch3(raw"Sequences\A01010101.txt",5)
+dat2 = create_batch3(raw"Sequences\B07020101.txt",5)
+dat3 =  create_batch3(raw"Sequences\A01010102.txt",5)
 
 X = [dat1[1] dat2[1] dat3[1]]
 d1 = [onehot(:1, [:1,:2,:3]) for i in 1:length(dat1[1][1,:]) ]

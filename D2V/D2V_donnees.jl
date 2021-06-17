@@ -1,9 +1,8 @@
-using DelimitedFiles
+using Flux: onehot, batch
 
-V = 64
-Vdoc = 400
-hiddoc = 20
-hidword = 40
+include("D:\\Mines\\Stage IRSL\\hla\\W2V\\Sequence.jl")
+include("D:\\Mines\\Stage IRSL\\hla\\W2V\\Donnees.jl")
+
 
 function create_hdy(seq, allele, window::Int)
     
@@ -30,8 +29,6 @@ function create_hdy(seq, allele, window::Int)
     return (X,D,Y)
 end
 
-#= (x,d,y) = create_hdy(db1[1].sequence,db1[1].nom,10) =#
-
 function imgt(db,window)
 
     (X,D,Y) = create_hdy(db[1].sequence,db[1].nom,window)
@@ -52,40 +49,4 @@ function imgt(db,window)
 
     (X,D,Y)
 
-end
-
-db2 = copy(db1[1:Vdoc])
-
-@time (X,D,Y) = imgt(db2,5)
-
-#= gpu(X)
-gpu(Y)
-gpu(Z) =#
-
-data = (X,D,Y)
-
-word2 = Dense(V,hidword; bias = false)
-doc2 = Dense(Vdoc,hiddoc; bias = false)
-h2(data) =  [word2(data[1]); doc2(data[2])]
-y2 = Dense(hidword + hiddoc, V; bias = false)
-
-D2V = Chain( h2 , y2 , softmax) #= |> gpu =#
-ps = params(D2V)
-
-loss(x_w,x_d,y) = crossentropy( D2V([x_w,x_d]), y)
-
-lost = []
-
-function update_loss!(ls)
-    push!(ls, loss(data...))
-end
-
-opt = ADAGrad()
-
-@time train!(loss, ps, Iterators.repeated(data,20), opt; cb = () -> update_loss!(lost))
-
-plot(lost)
-
-for a in nom_allele[1:Vdoc]
-    println(a)
 end
