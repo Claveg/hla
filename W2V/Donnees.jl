@@ -3,22 +3,39 @@ using Flux: onehot, batch, onecold
 
 include("Sequence.jl")
 
-function co_oc(l,window)
+#= function co_oc(l,window)
     n = length(l)
-    X = []
+    X = spzeros(V,n)
+
     for i in 1:n
         inf = max(1,i-window)
         sup = min(n, i+window)
 
-        vec = zeros(V)
         for j in inf:sup            
             if j!=i
-                vec += onehot(l[j], vocabulaire)
+                X[:,i] += onehot(l[j], vocabulaire)
             end
         end
-        append!(X,[vec])
     end
-    return batch(X)
+    return X
+end =#
+
+function co_oc(l,window)
+    n = length(l)
+    X = spzeros(V,n)
+
+    for i in 1:n
+        inf = max(1,i-window)
+        sup = min(n, i+window)
+
+        for j in inf:sup            
+            if j!=i
+                ind = trad(l[j])
+                X[ind,i] += 1
+            end
+        end
+    end
+    return X
 end
 
 function co_oc2(l,window) # avec des "poids"

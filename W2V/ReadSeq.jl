@@ -16,7 +16,6 @@ V = length(vocabulaire)
 
 sequence = "AAATTTGGGCCCAAA"^100
 
-function 
 function readSeq(sequence::String)
 
     n = length(sequence)

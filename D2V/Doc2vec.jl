@@ -11,7 +11,7 @@ Flux.@functor Dv
 function Dv(vocsize::Int,docsize::Int,hidwordsize::Int,hiddocsize::Int)
     Dv(rand(Float64,hidwordsize,vocsize).-0.5,
     rand(Float64,hiddocsize,docsize).-0.5,
-    rand(Float64,vocsize,hiddocsize+hidwordsize,).-0.5)
+    rand(Float64,vocsize,hiddocsize+hidwordsize).-0.5)
 end
 
 function (w::Dv)(x,d)

@@ -8,19 +8,16 @@ function create_hdy(seq, allele, window::Int)
     
     (l1,l2,l3) = vecSequence(seq)
 
-    Y1 = batch( [onehot(codon,vocabulaire) for codon in l1] )
-    Y2 = batch( [onehot(codon,vocabulaire) for codon in l2] )
-    Y3 = batch( [onehot(codon,vocabulaire) for codon in l3] )
-
-    Y = [Y1 Y2 Y3]
+    l = vcat(l1,l2,l3)
+    Y = Flux.onehotbatch( l , vocabulaire)
 
     x1 = co_oc(l1,window)
     x2 = co_oc(l2,window)
     x3 = co_oc(l3,window)
 
-    d1 = [onehot(allele, nom_allele[1:Vdoc]) for i in 1:length(l1) ]
-    d2 = [onehot(allele, nom_allele[1:Vdoc]) for i in 1:length(l2) ]
-    d3 = [onehot(allele, nom_allele[1:Vdoc]) for i in 1:length(l3) ]
+    d1 = [onehot(allele, nom_allele) for i in 1:length(l1) ]
+    d2 = [onehot(allele, nom_allele) for i in 1:length(l2) ]
+    d3 = [onehot(allele, nom_allele) for i in 1:length(l3) ]
 
     X = [x1 x2 x3]
 
@@ -41,12 +38,17 @@ function imgt(db,window)
 
         (x,d,y) = create_hdy(seq,name,window)
 
-        X = hcat(X,x)
-        D = hcat(D,d)
-        Y = hcat(Y,y)
+        X = [X x]
+        Y = [Y y]
+        D = [D d]        
 
     end
 
     (X,D,Y)
 
 end
+
+#= (X,D,Y) = create_hdy(db1[1].sequence,db1[1].nom,c)
+
+seq = db1[1].sequence
+window = c =#
