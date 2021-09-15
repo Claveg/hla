@@ -17,6 +17,13 @@ model = Wv(V,10)
 ps = params(model)
 opt = ADAGrad()
 
+for e in 1:epoch
+    for  i in 1:batchsize:20
+        data = imgt_w2v(db2[i:i+batchsize-1],c)
+        @time Flux.train!(cst, ps, [data], opt)
+    end
+end
+
 cst(data...)
 cst(data[1][:,1],data[2][:,1])
 

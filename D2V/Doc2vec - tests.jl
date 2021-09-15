@@ -32,7 +32,7 @@ function entraine(epoch,batchsize)
         for  i in 1:batchsize:100
             data = imgt(db2[i:i+batchsize-1],c)
             gpu(data)
-            @time Flux.train!(cost, ps, [(X,D,Y)], opt)
+            @time Flux.train!(cost, ps, [(X,D,Y)], opt) #attention à cost
         end
     end
 end

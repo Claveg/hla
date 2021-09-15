@@ -128,6 +128,63 @@ opt = ADAGrad()
 
 @time Flux.train!(cout, ps, [data], opt)
 
+include("D2V\\imgt.jl")
+
+function create_xy(seq, allele, window::Int)
+    
+    (l1,l2,l3) = vecSequence(seq)
+
+    l = vcat(l1,l2,l3)
+    Y = Flux.onehotbatch( l , vocabulaire)
+
+    x1 = co_oc(l1,window)
+    x2 = co_oc(l2,window)
+    x3 = co_oc(l3,window)
+
+    X = [x1 x2 x3]
+
+    return (X,Y)
+end
+
+function imgt_w2v(db,window)
+
+    (X,Y) = create_xy(db[1].sequence,db[1].nom,window)
+
+    for i in 2:length(db)
+
+        a = db[i]
+        seq = a.sequence
+        name = a.nom
+
+        (x,y) = create_xy(seq,name,window)
+
+        X = [X x]
+        Y = [Y y]     
+
+    end
+
+    (X,Y)
+
+end
+
+hidden = 10
+w = WvN(V,hidden)
+ps = params(w)
+opt = ADAGrad()
+
+epoch = 1
+batchsize = 5
+c = 5
+
+db2 = copy(db1[1:20])
+
+for e in 1:epoch
+    for  i in 1:batchsize:20
+        data = imgt_w2v(db2[i:i+batchsize-1],c)
+        @time Flux.train!(cout, ps, [data], opt)
+    end
+end
+
 
 
 

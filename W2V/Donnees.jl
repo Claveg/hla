@@ -1,5 +1,6 @@
 using Flux
 using Flux: onehot, batch, onecold
+using SparseArrays
 
 include("Sequence.jl")
 
@@ -22,17 +23,20 @@ end =#
 
 function co_oc(l,window)
     n = length(l)
-    X = spzeros(V,n)
+    X = spzeros(V,n-50)
 
-    for i in 1:n
+    for i in 1:n-50
+        if l[i] != 3 * "N"
+
         inf = max(1,i-window)
         sup = min(n, i+window)
 
-        for j in inf:sup            
-            if j!=i
-                ind = trad(l[j])
-                X[ind,i] += 1
-            end
+        for j in inf:sup 
+            if l[j] != 3 * "N"
+                if j!=i
+                    ind = trad(l[j])
+                    X[ind,i] += 1
+                end
         end
     end
     return X
